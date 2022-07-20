@@ -1,4 +1,13 @@
 {
+    "prooph/pdo-event-store": {
+        "version": "1.14",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "1.7",
+            "ref": "f35cb6fe1edf5853c6d78d429c8ae3564bdd1bd8"
+        }
+    },
     "symfony/console": {
         "version": "6.1",
         "recipe": {
@@ -40,6 +49,18 @@
             "public/index.php",
             "src/Controller/.gitignore",
             "src/Kernel.php"
+        ]
+    },
+    "symfony/messenger": {
+        "version": "6.1",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "6.0",
+            "ref": "2523f7d31488903e247a522e760dc279be7f7aaf"
+        },
+        "files": [
+            "config/packages/messenger.yaml"
         ]
     },
     "symfony/routing": {
