@@ -12,7 +12,7 @@ use Prooph\Common\Messaging\DomainEvent;
  * The same could be said for the Read Repository. As far as this bounded context
  * is concerned the domain has no need to access and read data from the repository.
  */
-interface ExchangeEventWriteRepositoryInterface
+interface EventWriteRepositoryInterface
 {
     public function storeEvent(DomainEvent $event): void;
 }

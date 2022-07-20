@@ -27,7 +27,7 @@ class AddBidToExchangeHandler implements MessageHandlerInterface
 
     public function __invoke(AddBidToExchangeCommand $command)
     {
-        $exchange = $this->exchangeReadRepository->findExchangeById($command->exchangeId()->toString());
+        $exchange = $this->exchangeReadRepository->findById($command->exchangeId()->toString());
 
         $exchange->bid(
             $command->id(),

@@ -26,15 +26,19 @@ services:
         arguments: ['%stock_exchange.mongo_uri%']
 
     # Two Exchange Read Repo Implementations:
-    stock_exchange.exchange_read_repo.mysql_event_store:
-        class: StockExchange\Infrastructure\Persistence\ExchangeMySqlEventStoreReadRepository
-
-    stock_exchange.exchange_read_repo.mongo:
+    stock_exchange.exchange_read_repo.mongo: # mongo - restore state from table
         class: StockExchange\Infrastructure\Persistence\ExchangeMongoReadRepository
 
+    stock_exchange.exchange_read_repo.mysql_event_store: # event store - restore state from event stream
+        class: StockExchange\Infrastructure\Persistence\ExchangeMySqlEventStoreReadRepository
+
     # Set the implementation you want to use:
-    # Use this if you want to restore the Exchange state from events:
-    StockExchange\Domain\ExchangeReadRepositoryInterface: '@stock_exchange.exchange_read_repo.mysql_event_store'
+    StockExchange\Domain\ExchangeReadRepositoryInterface: '@stock_exchange.exchange_read_repo.mongo'
+
+    stock_exchange.event_write_repo.mysql:
+        class: StockExchange\Infrastructure\Persistence\MysqlEventWriteRepository
+
+    StockExchange\Domain\EventWriteRepositoryInterface: '@stock_exchange.event_write_repo.mysql'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

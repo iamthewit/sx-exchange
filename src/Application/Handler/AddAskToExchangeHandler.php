@@ -27,7 +27,7 @@ class AddAskToExchangeHandler implements MessageHandlerInterface
 
     public function __invoke(AddAskToExchangeCommand $command)
     {
-        $exchange = $this->exchangeReadRepository->findExchangeById($command->exchangeId()->toString());
+        $exchange = $this->exchangeReadRepository->findById($command->exchangeId()->toString());
 
         $exchange->ask(
             $command->id(),

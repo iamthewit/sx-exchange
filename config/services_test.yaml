@@ -1,0 +1,7 @@
+parameters:
+
+services:
+  stock_exchange.event_write_repo.null:
+    class: StockExchange\Infrastructure\Persistence\NullEventWriteRepository
+
+  StockExchange\Domain\EventWriteRepositoryInterface: '@stock_exchange.event_write_repo.null'

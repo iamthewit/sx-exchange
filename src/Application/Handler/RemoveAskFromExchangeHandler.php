@@ -27,7 +27,7 @@ class RemoveAskFromExchangeHandler implements MessageHandlerInterface
 
     public function __invoke(RemoveAskFromExchangeCommand $command)
     {
-        $exchange = $this->exchangeReadRepository->findExchangeById($command->exchangeId()->toString());
+        $exchange = $this->exchangeReadRepository->findById($command->exchangeId()->toString());
 
         $exchange->removeAsk($command->id());
 

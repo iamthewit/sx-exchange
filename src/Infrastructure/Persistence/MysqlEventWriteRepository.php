@@ -7,9 +7,9 @@ use Prooph\Common\Messaging\DomainEvent;
 use Prooph\EventStore\EventStore;
 use Prooph\EventStore\Stream;
 use Prooph\EventStore\StreamName;
-use StockExchange\Domain\ExchangeEventWriteRepositoryInterface;
+use StockExchange\Domain\EventWriteRepositoryInterface;
 
-class ExchangeEventMysqlEventStoreWriteRepository implements ExchangeEventWriteRepositoryInterface
+class MysqlEventWriteRepository implements EventWriteRepositoryInterface
 {
     private EventStore $eventStore;
 

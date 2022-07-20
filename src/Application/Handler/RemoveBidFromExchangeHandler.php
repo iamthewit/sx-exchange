@@ -27,7 +27,7 @@ class RemoveBidFromExchangeHandler implements MessageHandlerInterface
 
     public function __invoke(RemoveBidFromExchangeCommand $command)
     {
-        $exchange = $this->exchangeReadRepository->findExchangeById($command->exchangeId()->toString());
+        $exchange = $this->exchangeReadRepository->findById($command->exchangeId()->toString());
 
         $exchange->removeBid($command->id());
 
