@@ -10,18 +10,21 @@ use StockExchange\Domain\ExchangeWriteRepositoryInterface;
 class ExchangeMongoWriteRepository implements ExchangeWriteRepositoryInterface
 {
     private Client $client;
+    private string $databaseName;
 
     /**
      * @param Client $client
      */
-    public function __construct(Client $client)
+    public function __construct(Client $client, string $databaseName)
     {
         $this->client = $client;
+        $this->databaseName = $databaseName;
     }
 
     public function store(Exchange $exchange): void
     {
-        $collection = $this->client->stock_exchange->exchanges;
+        $databaseName = $this->databaseName;
+        $collection = $this->client->$databaseName->exchanges;
 
         $collection->updateOne(
             ['_id' => $exchange->id()->toString()],

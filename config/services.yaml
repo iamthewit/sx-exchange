@@ -5,12 +5,16 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     stock_exchange.mongo_uri: '%env(MONGO_URI)%'
+    stock_exchange.mongo_database_name: "TEST_stock_exchange"
 
 services:
     # default configuration for services in *this* file
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+#        bind:
+#            string $databaseName: '%stock_exchange.mongo_database_name%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
@@ -28,12 +32,23 @@ services:
     # Two Exchange Read Repo Implementations:
     stock_exchange.exchange_read_repo.mongo: # mongo - restore state from table
         class: StockExchange\Infrastructure\Persistence\ExchangeMongoReadRepository
+        arguments:
+            - '@MongoDB\Client'
+            - '%stock_exchange.mongo_database%'
 
     stock_exchange.exchange_read_repo.mysql_event_store: # event store - restore state from event stream
         class: StockExchange\Infrastructure\Persistence\ExchangeMySqlEventStoreReadRepository
 
     # Set the implementation you want to use:
     StockExchange\Domain\ExchangeReadRepositoryInterface: '@stock_exchange.exchange_read_repo.mongo'
+
+    stock_exchange.exchange_write_repo.mongo:
+        bind:
+            string $databaseName: '%stock_exchange.mongo_database_name%'
+        class: StockExchange\Infrastructure\Persistence\ExchangeMongoWriteRepository
+        arguments:
+#            - '@MongoDB\Client'
+            $databaseName: '%stock_exchange.mongo_database%'
 
     stock_exchange.event_write_repo.mysql:
         class: StockExchange\Infrastructure\Persistence\MysqlEventWriteRepository
