@@ -2,6 +2,7 @@
 
 namespace App\Tests\Application\Handler;
 
+use MongoDB\Client;
 use Ramsey\Uuid\Uuid;
 use StockExchange\Application\Command\CreateExchangeCommand;
 use StockExchange\Application\Handler\CreateExchangeHandler;
@@ -14,6 +15,16 @@ use Symfony\Component\Messenger\Stamp\HandledStamp;
 
 class CreateExchangeHandlerTest extends KernelTestCase
 {
+    public function setUp(): void
+    {
+        self::bootKernel();
+        $container = static::getContainer();
+
+        // drop DB before every test
+        $client = new Client($container->getParameter('stock_exchange.mongo_uri'));
+        $client->dropDatabase($container->getParameter('stock_exchange.mongo_database_name'));
+    }
+
     public function testItCreatesAnExchange()
     {
         self::bootKernel();
@@ -50,7 +61,5 @@ class CreateExchangeHandlerTest extends KernelTestCase
 
         $this->assertInstanceOf(Exchange::class, $exchange);
         $this->assertTrue($exchangeId->equals($exchange->id()));
-
-        // TODO: use a testing database
     }
 }

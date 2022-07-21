@@ -5,6 +5,7 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     stock_exchange.mongo_uri: '%env(MONGO_URI)%'
+    stock_exchange.mongo_database_name: "%env(MONGO_DB_NAME)%"
 
 services:
     # default configuration for services in *this* file
@@ -28,6 +29,8 @@ services:
     # Two Exchange Read Repo Implementations:
     stock_exchange.exchange_read_repo.mongo: # mongo - restore state from table
         class: StockExchange\Infrastructure\Persistence\ExchangeMongoReadRepository
+        arguments:
+            $databaseName: '%stock_exchange.mongo_database_name%'
 
     stock_exchange.exchange_read_repo.mysql_event_store: # event store - restore state from event stream
         class: StockExchange\Infrastructure\Persistence\ExchangeMySqlEventStoreReadRepository
@@ -35,10 +38,13 @@ services:
     # Set the implementation you want to use:
     StockExchange\Domain\ExchangeReadRepositoryInterface: '@stock_exchange.exchange_read_repo.mongo'
 
+    # Repo used to write state to mongo database
+    StockExchange\Infrastructure\Persistence\ExchangeMongoWriteRepository:
+        arguments:
+            - '@MongoDB\Client'
+            - '%stock_exchange.mongo_database_name%'
+
     stock_exchange.event_write_repo.mysql:
         class: StockExchange\Infrastructure\Persistence\MysqlEventWriteRepository
 
     StockExchange\Domain\EventWriteRepositoryInterface: '@stock_exchange.event_write_repo.mysql'
-
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones

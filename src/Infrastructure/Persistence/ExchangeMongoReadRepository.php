@@ -9,13 +9,15 @@ use StockExchange\Domain\ExchangeReadRepositoryInterface;
 class ExchangeMongoReadRepository implements ExchangeReadRepositoryInterface
 {
     private Client $client;
+    private string $databaseName;
 
     /**
      * @param Client $client
      */
-    public function __construct(Client $client)
+    public function __construct(Client $client, string $databaseName)
     {
         $this->client = $client;
+        $this->databaseName = $databaseName;
     }
 
     /**
@@ -23,7 +25,9 @@ class ExchangeMongoReadRepository implements ExchangeReadRepositoryInterface
      */
     public function findById(string $id): Exchange
     {
-        $collection = $this->client->stock_exchange->exchanges;
+        $databaseName = $this->databaseName;
+
+        $collection = $this->client->$databaseName->exchanges;
 
         $result = $collection->findOne(
             ['_id' => $id],
