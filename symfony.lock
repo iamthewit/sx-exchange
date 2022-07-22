@@ -104,5 +104,8 @@
             "config/packages/routing.yaml",
             "config/routes.yaml"
         ]
+    },
+    "zenstruck/messenger-test": {
+        "version": "v1.4.2"
     }
 }

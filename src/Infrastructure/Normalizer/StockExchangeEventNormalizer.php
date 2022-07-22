@@ -41,7 +41,7 @@ class StockExchangeEventNormalizer implements NormalizerInterface, DenormalizerI
      * @param mixed  $data   Data to normalize
      * @param string $format The format being (de-)serialized from or into
      */
-    public function supportsNormalization(mixed $data, string $format = null): bool
+    public function supportsNormalization(mixed $data, string $format = null, array $context = []): bool
     {
         // TODO: void this - we don't need it afaik...
         return $data instanceof NormalizableInterface;
@@ -54,7 +54,7 @@ class StockExchangeEventNormalizer implements NormalizerInterface, DenormalizerI
      * @param string $type   The class to which the data should be denormalized
      * @param string $format The format being deserialized from
      */
-    public function supportsDenormalization(mixed $data, string $type, string $format = null): bool
+    public function supportsDenormalization(mixed $data, string $type, string $format = null, array $context = []): bool
     {
         // strpos() returns a 0 integer if the string needle is found at position 0 in the stack
         // it returns false if the string position is not found

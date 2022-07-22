@@ -6,15 +6,19 @@ use MongoDB\Client;
 use Ramsey\Uuid\Uuid;
 use StockExchange\Application\Command\CreateExchangeCommand;
 use StockExchange\Application\Handler\CreateExchangeHandler;
+use StockExchange\Domain\Event\ExchangeCreated;
 use StockExchange\Domain\Exchange;
 use StockExchange\Domain\ExchangeReadRepositoryInterface;
 use StockExchange\Infrastructure\Persistence\ExchangeMongoReadRepository;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
+use Zenstruck\Messenger\Test\InteractsWithMessenger;
 
 class CreateExchangeHandlerTest extends KernelTestCase
 {
+    use InteractsWithMessenger;
+
     public function setUp(): void
     {
         self::bootKernel();
@@ -61,5 +65,20 @@ class CreateExchangeHandlerTest extends KernelTestCase
 
         $this->assertInstanceOf(Exchange::class, $exchange);
         $this->assertTrue($exchangeId->equals($exchange->id()));
+    }
+
+    public function testItDispatchesDomainEvents()
+    {
+        self::bootKernel();
+        $container = static::getContainer();
+        $messageBus = $container->get(MessageBusInterface::class);
+
+        $exchangeId = Uuid::uuid4();
+        $command = new CreateExchangeCommand($exchangeId);
+
+        // dispatch the command to trigger the handler
+        $messageBus->dispatch($command);
+
+        $this->messenger('async')->queue()->assertContains(ExchangeCreated::class, 1);
     }
 }
