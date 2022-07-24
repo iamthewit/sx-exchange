@@ -15,13 +15,3 @@ framework:
             # Route your messages to the transports
             'Prooph\Common\Messaging\DomainEvent': [sync, async]
             'StockExchange\Application\Message\GenericMessage': 'sync'
-
-when@test:
-    framework:
-        messenger:
-            transports:
-                # replace with your transport name here (e.g., my_transport: 'in-memory://')
-                # For more Messenger testing tools, see https://github.com/zenstruck/messenger-test
-                async:
-                    dsn: 'test://'
-                    serializer: messenger.transport.native_php_serializer

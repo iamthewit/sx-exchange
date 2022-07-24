@@ -5,20 +5,16 @@ namespace App\Tests\Application\Handler;
 use MongoDB\Client;
 use Ramsey\Uuid\Uuid;
 use StockExchange\Application\Command\CreateExchangeCommand;
-use StockExchange\Application\Handler\CreateExchangeHandler;
 use StockExchange\Domain\Event\ExchangeCreated;
 use StockExchange\Domain\Exchange;
 use StockExchange\Domain\ExchangeReadRepositoryInterface;
-use StockExchange\Infrastructure\Persistence\ExchangeMongoReadRepository;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
-use Zenstruck\Messenger\Test\InteractsWithMessenger;
+use Symfony\Component\Messenger\Transport\InMemoryTransport;
 
 class CreateExchangeHandlerTest extends KernelTestCase
 {
-    use InteractsWithMessenger;
-
     public function setUp(): void
     {
         self::bootKernel();
@@ -67,7 +63,7 @@ class CreateExchangeHandlerTest extends KernelTestCase
         $this->assertTrue($exchangeId->equals($exchange->id()));
     }
 
-    public function testItDispatchesDomainEvents()
+    public function testItDispatchesExchangeCreatedDomainEvent()
     {
         self::bootKernel();
         $container = static::getContainer();
@@ -79,6 +75,9 @@ class CreateExchangeHandlerTest extends KernelTestCase
         // dispatch the command to trigger the handler
         $messageBus->dispatch($command);
 
-        $this->messenger('async')->queue()->assertContains(ExchangeCreated::class, 1);
+        /* @var InMemoryTransport $transport */
+        $transport = $this->getContainer()->get('messenger.transport.async');
+        $this->assertCount(1, $transport->getSent());
+        $this->assertInstanceOf(ExchangeCreated::class, $transport->getSent()[0]->getMessage());
     }
 }
