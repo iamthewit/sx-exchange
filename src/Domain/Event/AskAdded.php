@@ -4,7 +4,7 @@ namespace StockExchange\Domain\Event;
 
 use StockExchange\Domain\Ask;
 
-class AskAddedToExchange extends Event
+class AskAdded extends Event
 {
     private Ask $ask;
 

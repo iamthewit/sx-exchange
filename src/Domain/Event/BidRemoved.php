@@ -4,7 +4,7 @@ namespace StockExchange\Domain\Event;
 
 use Ramsey\Uuid\UuidInterface;
 
-class BidRemovedFromExchange extends Event
+class BidRemoved extends Event
 {
     private UuidInterface $bidId;
 

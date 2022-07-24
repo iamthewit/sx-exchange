@@ -3,7 +3,7 @@
 
 namespace StockExchange\Application\Handler;
 
-use StockExchange\Application\Command\RemoveBidFromExchangeCommand;
+use StockExchange\Application\Command\RemoveBidCommand;
 use StockExchange\Domain\ExchangeReadRepositoryInterface;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -12,7 +12,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
  * Class RemoveAskFromExchangeHandler
  * @package StockExchange\Application\Exchange\Handler
  */
-class RemoveBidFromExchangeHandler implements MessageHandlerInterface
+class RemoveBidHandler implements MessageHandlerInterface
 {
     private MessageBusInterface $messageBus;
     private ExchangeReadRepositoryInterface $exchangeReadRepository;
@@ -25,7 +25,7 @@ class RemoveBidFromExchangeHandler implements MessageHandlerInterface
         $this->exchangeReadRepository = $exchangeReadRepository;
     }
 
-    public function __invoke(RemoveBidFromExchangeCommand $command)
+    public function __invoke(RemoveBidCommand $command)
     {
         $exchange = $this->exchangeReadRepository->findById($command->exchangeId()->toString());
 

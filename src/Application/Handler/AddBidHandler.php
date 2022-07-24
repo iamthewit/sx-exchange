@@ -3,16 +3,16 @@
 
 namespace StockExchange\Application\Handler;
 
-use StockExchange\Application\Command\RemoveAskFromExchangeCommand;
+use StockExchange\Application\Command\AddBidCommand;
 use StockExchange\Domain\ExchangeReadRepositoryInterface;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
- * Class RemoveAskFromExchangeHandler
+ * Class AddBidToExchangeHandler
  * @package StockExchange\Application\Exchange\Handler
  */
-class RemoveAskFromExchangeHandler implements MessageHandlerInterface
+class AddBidHandler implements MessageHandlerInterface
 {
     private MessageBusInterface $messageBus;
     private ExchangeReadRepositoryInterface $exchangeReadRepository;
@@ -25,11 +25,16 @@ class RemoveAskFromExchangeHandler implements MessageHandlerInterface
         $this->exchangeReadRepository = $exchangeReadRepository;
     }
 
-    public function __invoke(RemoveAskFromExchangeCommand $command)
+    public function __invoke(AddBidCommand $command)
     {
         $exchange = $this->exchangeReadRepository->findById($command->exchangeId()->toString());
 
-        $exchange->removeAsk($command->id());
+        $exchange->bid(
+            $command->id(),
+            $command->traderId(),
+            $command->symbol(),
+            $command->price()
+        );
 
         foreach ($exchange->dispatchableEvents() as $event) {
             $this->messageBus->dispatch($event);

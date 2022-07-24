@@ -4,7 +4,7 @@ namespace StockExchange\Domain\Event;
 
 use Ramsey\Uuid\UuidInterface;
 
-class AskRemovedFromExchange extends Event
+class AskRemoved extends Event
 {
     private UuidInterface $askId;
 

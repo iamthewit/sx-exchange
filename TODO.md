@@ -1,5 +1,4 @@
 # TODO
-- Docker
 - Tests
 - Create / move code to libraries to be shred between contextxs
   - Event.php

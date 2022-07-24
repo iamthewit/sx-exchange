@@ -9,7 +9,7 @@ use Ramsey\Uuid\UuidInterface;
  * Class RemoveAskFromExchangeCommand
  * @package StockExchange\Application\Exchange\Command
  */
-class RemoveAskFromExchangeCommand
+class RemoveAskCommand
 {
     private UuidInterface $exchangeId;
     private UuidInterface $id;

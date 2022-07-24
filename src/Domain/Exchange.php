@@ -8,10 +8,10 @@ use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 use StockExchange\Domain\Event\Event;
 use StockExchange\Domain\Exception\StateRestorationException;
-use StockExchange\Domain\Event\AskAddedToExchange;
-use StockExchange\Domain\Event\AskRemovedFromExchange;
-use StockExchange\Domain\Event\BidAddedToExchange;
-use StockExchange\Domain\Event\BidRemovedFromExchange;
+use StockExchange\Domain\Event\AskAdded;
+use StockExchange\Domain\Event\AskRemoved;
+use StockExchange\Domain\Event\BidAdded;
+use StockExchange\Domain\Event\BidRemoved;
 use StockExchange\Domain\Event\ExchangeCreated;
 use StockExchange\Domain\Event\TradeExecuted;
 use StockExchange\Domain\Exception\AskCollectionCreationException;
@@ -86,19 +86,19 @@ class Exchange implements DispatchableEventsInterface, \JsonSerializable, Arraya
                     $exchange->applyExchangeCreated($event);
                     break;
 
-                case is_a($event, BidAddedToExchange::class):
+                case is_a($event, BidAdded::class):
                     $exchange->applyBidAddedToExchange($event);
                     break;
 
-                case is_a($event, AskAddedToExchange::class):
+                case is_a($event, AskAdded::class):
                     $exchange->applyAskAddedToExchange($event);
                     break;
 
-                case is_a($event, BidRemovedFromExchange::class):
+                case is_a($event, BidRemoved::class):
                     $exchange->applyBidRemovedFromExchange($event);
                     break;
 
-                case is_a($event, AskRemovedFromExchange::class):
+                case is_a($event, AskRemoved::class):
                     $exchange->applyAskRemovedFromExchange($event);
                     break;
 
@@ -115,6 +115,24 @@ class Exchange implements DispatchableEventsInterface, \JsonSerializable, Arraya
     {
         $exchange = new self();
         $exchange->id = Uuid::fromString($result['id']);
+        $exchange->bids = new BidCollection([]);
+        $exchange->asks = new AskCollection([]);
+        if (array_key_exists('asks', $result)) {
+            foreach ($result['asks'] as $ask) {
+                $exchange->asks = new AskCollection(
+                    $exchange->asks()->toArray() + [
+                        Ask::restoreFromValues(
+                            $ask['askId'],
+                            $ask['traderId'],
+                            $ask['symbol'],
+                            $ask['price'],
+                        )
+                    ]
+                );
+            }
+        }
+
+        $exchange->trades = new TradeCollection([]);
 
         return $exchange;
     }
@@ -173,7 +191,7 @@ class Exchange implements DispatchableEventsInterface, \JsonSerializable, Arraya
         // add bid to collection
         $this->bids = new BidCollection($this->bids()->toArray() + [$bid]);
 
-        $bidAdded = new BidAddedToExchange($bid);
+        $bidAdded = new BidAdded($bid);
         $bidAdded = $bidAdded->withMetadata($this->eventMetaData());
         $this->addDispatchableEvent($bidAdded);
 
@@ -223,7 +241,7 @@ class Exchange implements DispatchableEventsInterface, \JsonSerializable, Arraya
         // add ask to collection
         $this->asks = new AskCollection($this->asks()->toArray() + [$ask]);
 
-        $askAdded = new AskAddedToExchange($ask);
+        $askAdded = new AskAdded($ask);
         $askAdded = $askAdded->withMetadata($this->eventMetaData());
         $this->addDispatchableEvent($askAdded);
 
@@ -261,7 +279,7 @@ class Exchange implements DispatchableEventsInterface, \JsonSerializable, Arraya
 
         $this->bids = new BidCollection($bids);
 
-        $bidRemovedFromExchange = new BidRemovedFromExchange($bidId);
+        $bidRemovedFromExchange = new BidRemoved($bidId);
         $bidRemovedFromExchange = $bidRemovedFromExchange->withMetadata($this->eventMetaData());
         $this->addDispatchableEvent($bidRemovedFromExchange);
     }
@@ -278,7 +296,7 @@ class Exchange implements DispatchableEventsInterface, \JsonSerializable, Arraya
 
         $this->asks = new AskCollection($asks);
 
-        $askRemovedFromExchange = new AskRemovedFromExchange($askId);
+        $askRemovedFromExchange = new AskRemoved($askId);
         $askRemovedFromExchange = $askRemovedFromExchange->withMetadata($this->eventMetaData());
         $this->addDispatchableEvent($askRemovedFromExchange);
     }
@@ -392,11 +410,11 @@ class Exchange implements DispatchableEventsInterface, \JsonSerializable, Arraya
     }
 
     /**
-     * @param BidAddedToExchange $event
+     * @param BidAdded $event
      *
      * @throws BidCollectionCreationException
      */
-    private function applyBidAddedToExchange(BidAddedToExchange $event): void
+    private function applyBidAddedToExchange(BidAdded $event): void
     {
         // ensure we have the current state of the trader on the exchange
         // create the bid
@@ -414,11 +432,11 @@ class Exchange implements DispatchableEventsInterface, \JsonSerializable, Arraya
     }
 
     /**
-     * @param BidRemovedFromExchange $event
+     * @param BidRemoved $event
      *
      * @throws BidCollectionCreationException
      */
-    private function applyBidRemovedFromExchange(BidRemovedFromExchange $event): void
+    private function applyBidRemovedFromExchange(BidRemoved $event): void
     {
         $bids = $this->bids()->toArray();
         unset($bids[$event->payload()['bidId']]);
@@ -429,10 +447,11 @@ class Exchange implements DispatchableEventsInterface, \JsonSerializable, Arraya
     }
 
     /**
-     * @param AskAddedToExchange $event
+     * @param AskAdded $event
+     *
      * @throws AskCollectionCreationException
      */
-    private function applyAskAddedToExchange(AskAddedToExchange $event): void
+    private function applyAskAddedToExchange(AskAdded $event): void
     {
         $this->asks = new AskCollection(
             $this->asks()->toArray() + [
@@ -449,11 +468,11 @@ class Exchange implements DispatchableEventsInterface, \JsonSerializable, Arraya
     }
 
     /**
-     * @param AskRemovedFromExchange $event
+     * @param AskRemoved $event
      *
      * @throws AskCollectionCreationException
      */
-    private function applyAskRemovedFromExchange(AskRemovedFromExchange $event): void
+    private function applyAskRemovedFromExchange(AskRemoved $event): void
     {
         $asks = $this->asks()->toArray();
         unset($asks[$event->payload()['askId']]);

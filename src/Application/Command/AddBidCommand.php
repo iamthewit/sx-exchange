@@ -6,7 +6,7 @@ use Ramsey\Uuid\UuidInterface;
 use StockExchange\Domain\Price;
 use StockExchange\Domain\Symbol;
 
-class AddBidToExchangeCommand
+class AddBidCommand
 {
     private UuidInterface $exchangeId;
     private UuidInterface $id;
