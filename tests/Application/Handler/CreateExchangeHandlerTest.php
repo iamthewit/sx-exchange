@@ -9,33 +9,34 @@ use StockExchange\Domain\Event\ExchangeCreated;
 use StockExchange\Domain\Exchange;
 use StockExchange\Domain\ExchangeReadRepositoryInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 use Symfony\Component\Messenger\Transport\InMemoryTransport;
 
 class CreateExchangeHandlerTest extends KernelTestCase
 {
+    private ContainerInterface $container;
+    private MessageBusInterface $messageBus;
+
     public function setUp(): void
     {
         self::bootKernel();
-        $container = static::getContainer();
+        $this->container = static::getContainer();
+        $this->messageBus = $this->container->get(MessageBusInterface::class);
 
         // drop DB before every test
-        $client = new Client($container->getParameter('stock_exchange.mongo_uri'));
-        $client->dropDatabase($container->getParameter('stock_exchange.mongo_database_name'));
+        $client = new Client($this->container->getParameter('stock_exchange.mongo_uri'));
+        $client->dropDatabase($this->container->getParameter('stock_exchange.mongo_database_name'));
     }
 
     public function testItCreatesAnExchange()
     {
-        self::bootKernel();
-        $container = static::getContainer();
-        $messageBus = $container->get(MessageBusInterface::class);
-
         $exchangeId = Uuid::uuid4();
         $command = new CreateExchangeCommand($exchangeId);
 
         // dispatch the command to trigger the handler
-        $envelope = $messageBus->dispatch($command);
+        $envelope = $this->messageBus->dispatch($command);
 
         /** @var Exchange $result */
         $result = $envelope->last(HandledStamp::class)->getResult();
@@ -46,16 +47,13 @@ class CreateExchangeHandlerTest extends KernelTestCase
 
     public function testItStoresExchangeInRepository()
     {
-        self::bootKernel();
-        $container = static::getContainer();
-        $messageBus = $container->get(MessageBusInterface::class);
-        $readRepo = $container->get(ExchangeReadRepositoryInterface::class);
+        $readRepo = $this->container->get(ExchangeReadRepositoryInterface::class);
 
         $exchangeId = Uuid::uuid4();
         $command = new CreateExchangeCommand($exchangeId);
 
         // dispatch the command to trigger the handler
-        $messageBus->dispatch($command);
+        $this->messageBus->dispatch($command);
 
         $exchange = $readRepo->findById($exchangeId->toString());
 
@@ -65,15 +63,11 @@ class CreateExchangeHandlerTest extends KernelTestCase
 
     public function testItDispatchesExchangeCreatedDomainEvent()
     {
-        self::bootKernel();
-        $container = static::getContainer();
-        $messageBus = $container->get(MessageBusInterface::class);
-
         $exchangeId = Uuid::uuid4();
         $command = new CreateExchangeCommand($exchangeId);
 
         // dispatch the command to trigger the handler
-        $messageBus->dispatch($command);
+        $this->messageBus->dispatch($command);
 
         /* @var InMemoryTransport $transport */
         $transport = $this->getContainer()->get('messenger.transport.async');

@@ -122,10 +122,10 @@ class Exchange implements DispatchableEventsInterface, \JsonSerializable, Arraya
                 $exchange->asks = new AskCollection(
                     $exchange->asks()->toArray() + [
                         Ask::restoreFromValues(
-                            $ask['askId'],
-                            $ask['traderId'],
-                            $ask['symbol'],
-                            $ask['price'],
+                            Uuid::fromString($ask['askId']),
+                            Uuid::fromString($ask['traderId']),
+                            Symbol::fromValue($ask['symbol']['value']),
+                            Price::fromValue($ask['price']['value']),
                         )
                     ]
                 );
@@ -319,6 +319,8 @@ class Exchange implements DispatchableEventsInterface, \JsonSerializable, Arraya
         return [
             'id' => $this->id()->toString(),
             'trades' => $this->trades()->toArray(),
+            'asks' => $this->asks()->toArray(),
+            'bids' => $this->bids()->toArray()
         ];
     }
 
