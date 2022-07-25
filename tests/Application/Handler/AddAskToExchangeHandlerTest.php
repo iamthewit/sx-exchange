@@ -5,12 +5,16 @@ namespace App\Tests\Application\Handler;
 use MongoDB\Client;
 use Ramsey\Uuid\Uuid;
 use StockExchange\Application\Command\AddAskCommand;
+use StockExchange\Application\Command\AddBidCommand;
 use StockExchange\Application\Command\CreateExchangeCommand;
 use StockExchange\Application\Handler\AddAskHandler;
 use PHPUnit\Framework\TestCase;
 use StockExchange\Domain\Ask;
 use StockExchange\Domain\Event\AskAdded;
+use StockExchange\Domain\Event\AskRemoved;
+use StockExchange\Domain\Event\BidRemoved;
 use StockExchange\Domain\Event\ExchangeCreated;
+use StockExchange\Domain\Event\TradeExecuted;
 use StockExchange\Domain\Exchange;
 use StockExchange\Domain\ExchangeReadRepositoryInterface;
 use StockExchange\Domain\Price;
@@ -116,13 +120,40 @@ class AddAskToExchangeHandlerTest extends KernelTestCase
         $this->assertInstanceOf(AskAdded::class, $transport->getSent()[1]->getMessage());
     }
 
-    public function testItExecutesATrade()
+    public function testItDispatchesAnAddRemovedEventAndABidRemovedEventAndAATradeExecutedEvent()
     {
-        $this->markTestIncomplete();
-    }
+        // create exchange
+        $exchangeId = Uuid::uuid4();
+        $createExchangeCommand = new CreateExchangeCommand($exchangeId);
+        $this->messageBus->dispatch($createExchangeCommand);
 
-    public function testItDoesNotExecuteATrade()
-    {
-        $this->markTestIncomplete();
+        // add ask to exchange
+        $askId = Uuid::uuid4();
+        $addAskCommand = new AddAskCommand(
+            $exchangeId,
+            $askId,
+            Uuid::uuid4(),
+            Symbol::fromValue('FOO'),
+            Price::fromValue(100)
+        );
+        $this->messageBus->dispatch($addAskCommand);
+
+        // add bid to exchange
+        $bidId = Uuid::uuid4();
+        $addBidCommand = new AddBidCommand(
+            $exchangeId,
+            $bidId,
+            Uuid::uuid4(),
+            Symbol::fromValue('FOO'),
+            Price::fromValue(100)
+        );
+        $this->messageBus->dispatch($addBidCommand);
+
+        /* @var InMemoryTransport $transport */
+        $transport = $this->getContainer()->get('messenger.transport.async');
+        $this->assertCount(6, $transport->getSent());
+        $this->assertInstanceOf(BidRemoved::class, $transport->getSent()[3]->getMessage());
+        $this->assertInstanceOf(AskRemoved::class, $transport->getSent()[4]->getMessage());
+        $this->assertInstanceOf(TradeExecuted::class, $transport->getSent()[5]->getMessage());
     }
 }
