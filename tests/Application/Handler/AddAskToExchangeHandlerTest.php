@@ -9,6 +9,8 @@ use StockExchange\Application\Command\CreateExchangeCommand;
 use StockExchange\Application\Handler\AddAskHandler;
 use PHPUnit\Framework\TestCase;
 use StockExchange\Domain\Ask;
+use StockExchange\Domain\Event\AskAdded;
+use StockExchange\Domain\Event\ExchangeCreated;
 use StockExchange\Domain\Exchange;
 use StockExchange\Domain\ExchangeReadRepositoryInterface;
 use StockExchange\Domain\Price;
@@ -17,6 +19,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
+use Symfony\Component\Messenger\Transport\InMemoryTransport;
 
 class AddAskToExchangeHandlerTest extends KernelTestCase
 {
@@ -91,7 +94,26 @@ class AddAskToExchangeHandlerTest extends KernelTestCase
 
     public function testItDispatchesAskAddedDomainEvent()
     {
-        $this->markTestIncomplete();
+        // create exchange
+        $exchangeId = Uuid::uuid4();
+        $createExchangeCommand = new CreateExchangeCommand($exchangeId);
+        $this->messageBus->dispatch($createExchangeCommand);
+
+        // add ask to exchange
+        $askId = Uuid::uuid4();
+        $addAskCommand = new AddAskCommand(
+            $exchangeId,
+            $askId,
+            Uuid::uuid4(),
+            Symbol::fromValue('FOO'),
+            Price::fromValue(100)
+        );
+        $this->messageBus->dispatch($addAskCommand);
+
+        /* @var InMemoryTransport $transport */
+        $transport = $this->getContainer()->get('messenger.transport.async');
+        $this->assertCount(2, $transport->getSent());
+        $this->assertInstanceOf(AskAdded::class, $transport->getSent()[1]->getMessage());
     }
 
     public function testItExecutesATrade()
