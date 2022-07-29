@@ -115,7 +115,23 @@ class Exchange implements DispatchableEventsInterface, \JsonSerializable, Arraya
     {
         $exchange = new self();
         $exchange->id = Uuid::fromString($result['id']);
+
         $exchange->bids = new BidCollection([]);
+        if (array_key_exists('bids', $result)) {
+            foreach ($result['bids'] as $bid) {
+                $exchange->bids = new BidCollection(
+                    $exchange->bids()->toArray() + [
+                        Bid::restoreFromValues(
+                            Uuid::fromString($bid['bidId']),
+                            Uuid::fromString($bid['traderId']),
+                            Symbol::fromValue($bid['symbol']['value']),
+                            Price::fromValue($bid['price']['value']),
+                        )
+                    ]
+                );
+            }
+        }
+
         $exchange->asks = new AskCollection([]);
         if (array_key_exists('asks', $result)) {
             foreach ($result['asks'] as $ask) {

@@ -7,13 +7,10 @@ use Ramsey\Uuid\Uuid;
 use StockExchange\Application\Command\AddAskCommand;
 use StockExchange\Application\Command\AddBidCommand;
 use StockExchange\Application\Command\CreateExchangeCommand;
-use StockExchange\Application\Handler\AddAskHandler;
-use PHPUnit\Framework\TestCase;
 use StockExchange\Domain\Ask;
 use StockExchange\Domain\Event\AskAdded;
 use StockExchange\Domain\Event\AskRemoved;
 use StockExchange\Domain\Event\BidRemoved;
-use StockExchange\Domain\Event\ExchangeCreated;
 use StockExchange\Domain\Event\TradeExecuted;
 use StockExchange\Domain\Exchange;
 use StockExchange\Domain\ExchangeReadRepositoryInterface;
@@ -25,7 +22,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 use Symfony\Component\Messenger\Transport\InMemoryTransport;
 
-class AddAskToExchangeHandlerTest extends KernelTestCase
+class AddAskHandlerTest extends KernelTestCase
 {
     private ContainerInterface $container;
     private MessageBusInterface $messageBus;
