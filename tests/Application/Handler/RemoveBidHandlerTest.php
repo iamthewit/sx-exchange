@@ -4,10 +4,10 @@ namespace App\Tests\Application\Handler;
 
 use MongoDB\Client;
 use Ramsey\Uuid\Uuid;
-use StockExchange\Application\Command\AddAskCommand;
+use StockExchange\Application\Command\AddBidCommand;
 use StockExchange\Application\Command\CreateExchangeCommand;
-use StockExchange\Application\Command\RemoveAskCommand;
-use StockExchange\Domain\Event\AskRemoved;
+use StockExchange\Application\Command\RemoveBidCommand;
+use StockExchange\Domain\Event\BidRemoved;
 use StockExchange\Domain\Exchange;
 use StockExchange\Domain\ExchangeReadRepositoryInterface;
 use StockExchange\Domain\Price;
@@ -18,7 +18,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
 use Symfony\Component\Messenger\Transport\InMemoryTransport;
 
-class RemoveAskHandlerTest extends KernelTestCase
+class RemoveBidHandlerTest extends KernelTestCase
 {
     private ContainerInterface $container;
     private MessageBusInterface $messageBus;
@@ -34,7 +34,7 @@ class RemoveAskHandlerTest extends KernelTestCase
         $client->dropDatabase($this->container->getParameter('stock_exchange.mongo_database_name'));
     }
 
-    public function testItRemovesAskFromExchange()
+    public function testItRemovesBidFromExchange()
     {
         // create exchange
         $exchangeId = Uuid::uuid4();
@@ -43,84 +43,84 @@ class RemoveAskHandlerTest extends KernelTestCase
         /** @var Exchange $exchange */
         $exchange = $envelope->last(HandledStamp::class)->getResult();
 
-        $this->assertEmpty($exchange->asks());
+        $this->assertEmpty($exchange->bids());
 
-        // add ask to exchange
-        $askId = Uuid::uuid4();
-        $addAskCommand = new AddAskCommand(
+        // add bid to exchange
+        $bidId = Uuid::uuid4();
+        $addBidCommand = new AddBidCommand(
             $exchangeId,
-            $askId,
+            $bidId,
             Uuid::uuid4(),
             Symbol::fromValue('FOO'),
             Price::fromValue(100)
         );
-        $this->messageBus->dispatch($addAskCommand);
+        $this->messageBus->dispatch($addBidCommand);
 
-        // remove ask from exchange
-        $removeAskCommand = new RemoveAskCommand($exchangeId, $askId);
-        $envelope = $this->messageBus->dispatch($removeAskCommand);
+        // remove bid from exchange
+        $removeBidCommand = new RemoveBidCommand($exchangeId, $bidId);
+        $envelope = $this->messageBus->dispatch($removeBidCommand);
 
         /** @var Exchange $exchange */
         $exchange = $envelope->last(HandledStamp::class)->getResult();
 
-        $this->assertCount(0, $exchange->asks());
+        $this->assertCount(0, $exchange->bids());
     }
 
-    public function testItRemovesAskFromExchangeRepository()
+    public function testItRemovesBidFromExchangeRepository()
     {
         // create exchange
         $exchangeId = Uuid::uuid4();
         $createExchangeCommand = new CreateExchangeCommand($exchangeId);
         $this->messageBus->dispatch($createExchangeCommand);
 
-        // add ask to exchange
-        $askId = Uuid::uuid4();
-        $addAskCommand = new AddAskCommand(
+        // add bid to exchange
+        $bidId = Uuid::uuid4();
+        $addBidCommand = new AddBidCommand(
             $exchangeId,
-            $askId,
+            $bidId,
             Uuid::uuid4(),
             Symbol::fromValue('FOO'),
             Price::fromValue(100)
         );
-        $this->messageBus->dispatch($addAskCommand);
+        $this->messageBus->dispatch($addBidCommand);
 
-        // remove ask from exchange
-        $removeAskCommand = new RemoveAskCommand($exchangeId, $askId);
-        $this->messageBus->dispatch($removeAskCommand);
+        // remove bid from exchange
+        $removeBidCommand = new RemoveBidCommand($exchangeId, $bidId);
+        $this->messageBus->dispatch($removeBidCommand);
 
         // check database
         /** @var ExchangeReadRepositoryInterface $readRepo */
         $readRepo = $this->container->get(ExchangeReadRepositoryInterface::class);
         $exchange = $readRepo->findById($exchangeId->toString());
 
-        $this->assertCount(0, $exchange->asks());
+        $this->assertCount(0, $exchange->bids());
     }
 
-    public function testItDispatchesAskRemovedDomainEvent()
+    public function testItDispatchesBidRemovedDomainEvent()
     {
         // create exchange
         $exchangeId = Uuid::uuid4();
         $createExchangeCommand = new CreateExchangeCommand($exchangeId);
         $this->messageBus->dispatch($createExchangeCommand);
 
-        // add ask to exchange
-        $askId = Uuid::uuid4();
-        $addAskCommand = new AddAskCommand(
+        // add bid to exchange
+        $bidId = Uuid::uuid4();
+        $addBidCommand = new AddBidCommand(
             $exchangeId,
-            $askId,
+            $bidId,
             Uuid::uuid4(),
             Symbol::fromValue('FOO'),
             Price::fromValue(100)
         );
-        $this->messageBus->dispatch($addAskCommand);
+        $this->messageBus->dispatch($addBidCommand);
 
-        // remove ask from exchange
-        $removeAskCommand = new RemoveAskCommand($exchangeId, $askId);
-        $this->messageBus->dispatch($removeAskCommand);
+        // remove bid from exchange
+        $removeBidCommand = new RemoveBidCommand($exchangeId, $bidId);
+        $this->messageBus->dispatch($removeBidCommand);
 
         /* @var InMemoryTransport $transport */
         $transport = $this->getContainer()->get('messenger.transport.async');
         $this->assertCount(3, $transport->getSent());
-        $this->assertInstanceOf(AskRemoved::class, $transport->getSent()[2]->getMessage());
+        $this->assertInstanceOf(BidRemoved::class, $transport->getSent()[2]->getMessage());
     }
 }
