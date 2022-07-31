@@ -49,7 +49,12 @@ class BidCollection implements IteratorAggregate, Countable, JsonSerializable
      */
     public function toArray(): array
     {
-        return $this->bids;
+        return array_map(
+            function(Bid $bid) {
+                return $bid->toArray();
+            },
+            $this->bids
+        );
     }
 
     /**
@@ -95,6 +100,6 @@ class BidCollection implements IteratorAggregate, Countable, JsonSerializable
 
     public function findById(UuidInterface $id): Bid
     {
-        return $this->toArray()[$id->toString()];
+        return $this->bids[$id->toString()];
     }
 }

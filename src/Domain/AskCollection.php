@@ -49,7 +49,12 @@ class AskCollection implements IteratorAggregate, Countable, JsonSerializable
      */
     public function toArray(): array
     {
-        return $this->asks;
+        return array_map(
+            function(Ask $ask) {
+                return $ask->toArray();
+            },
+            $this->asks
+        );
     }
 
     /**
@@ -95,6 +100,6 @@ class AskCollection implements IteratorAggregate, Countable, JsonSerializable
 
     public function findById(UuidInterface $id): Ask
     {
-        return $this->toArray()[$id->toString()];
+        return $this->asks[$id->toString()];
     }
 }

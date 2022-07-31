@@ -111,7 +111,7 @@ class Exchange implements DispatchableEventsInterface, \JsonSerializable, Arraya
         return $exchange;
     }
 
-    public static function restoreFromValues(array $result): Exchange
+    public static function restoreFromArray(array $result): Exchange
     {
         $exchange = new self();
         $exchange->id = Uuid::fromString($result['id']);
@@ -223,7 +223,7 @@ class Exchange implements DispatchableEventsInterface, \JsonSerializable, Arraya
         if (count($asks)) {
             // TODO: implement a proper way of determining which ask
             // to pick for the trade if there is more than 1 available
-            $chosenAsk = current($asks->toArray());
+            $chosenAsk = $asks->getIterator()->current();
 
             if ($chosenAsk === false) {
                 // TODO: sort this out properly
@@ -272,7 +272,7 @@ class Exchange implements DispatchableEventsInterface, \JsonSerializable, Arraya
 
         // if match found execute trade
         if (count($bids)) {
-            $chosenBid = current($bids->toArray());
+            $chosenBid = $bids->getIterator()->current();
 
             if ($chosenBid === false) {
                 // TODO: sort this out properly

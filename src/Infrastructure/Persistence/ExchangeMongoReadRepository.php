@@ -34,6 +34,6 @@ class ExchangeMongoReadRepository implements ExchangeReadRepositoryInterface
             ['typeMap' => ['root' => 'array', 'document' => 'array', 'array' => 'array']]
         );
 
-        return Exchange::restoreFromValues($result);
+        return Exchange::restoreFromArray($result);
     }
 }
